@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 import transporter from "../config/nodeMailer.js";
-
+import { EMAIL_VERIFY_TEMPLATE, PASSWORD_RESET_TEMPLATE } from "../config/emailTemplete.js";
 
 export const register = async (req, res) => {
 
@@ -42,7 +42,8 @@ export const register = async (req, res) => {
             from: process.env.SENDER_EMAIL,
             to: email,
             subject: 'Welcome to Auto Parts Order System',
-            text: `Hi ${name},\n\nThank you for registering at Auto Parts Order System! Your account has been created with email id: ${email}.\n\nBest regards,\nAuto Parts Order System Team`
+          // text: `Hi ${name},\n\nThank you for registering at Auto Parts Order System! Your account has been created with email id: ${email}.\n\nBest regards,\nAuto Parts Order System Team`,
+          html: EMAIL_VERIFY_TEMPLATE.replace("{{otp}}", otp).replace("{{email}}", user.email)
         };
 
         await transporter.sendMail(mailOptions); 
@@ -131,7 +132,8 @@ export const sendVerifyOtp = async (req, res) => {
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "Account Verification OTP",
-      text: `Your OTP is ${otp}. Verify your account using this OTP.`,
+      // text: `Your OTP is ${otp}. Verify your account using this OTP.`,
+      html:EMAIL_VERIFY_TEMPLATE.replace("{{otp}}", otp).replace("{{email}}", user.email)
     };
 
     console.log("Sending OTP to:", user.email);
@@ -214,7 +216,8 @@ export const sendResetOtp = async (req, res) => {
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "Account Reset OTP",
-      text: `Your OTP for resetting your password is ${otp}. Use this OTP to process with resetting your password.`,
+      // text: `Your OTP for resetting your password is ${otp}. Use this OTP to process with resetting your password.`,
+      html: PASSWORD_RESET_TEMPLATE.replace("{{otp}}", otp).replace("{{email}}", user.email)
     };
 
     await transporter.sendMail(mailOptions);
