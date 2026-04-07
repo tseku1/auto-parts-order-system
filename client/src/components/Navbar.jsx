@@ -55,7 +55,7 @@ const Navbar = () => {
           src={assets.logo}
           alt="Logo"
           className='w-28 sm:w-32 cursor-pointer'
-          onClick={() => navigate(userData ? '/dashboard' : '/')}
+          onClick={() => navigate('/')}
         />
         {userData && (
           <nav className='hidden sm:flex gap-6'>

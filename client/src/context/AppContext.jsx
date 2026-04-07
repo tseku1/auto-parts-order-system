@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react'
+import { createContext, useEffect, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
@@ -8,6 +8,7 @@ export const AppContextProvider = ({ children }) => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userData, setUserData] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
 
   axios.defaults.withCredentials = true
 
@@ -16,10 +17,12 @@ export const AppContextProvider = ({ children }) => {
       const { data } = await axios.get(backendUrl + '/api/auth/is-auth')
       if (data.success) {
         setIsLoggedIn(true)
-        getUserData()
+        await getUserData()
       }
-     } catch (error) {
-      toast.error(error.message)
+    } catch {
+      // нэвтрээгүй — энгийн байдал
+    } finally {
+      setAuthLoading(false)
     }
   }
 
@@ -43,6 +46,7 @@ export const AppContextProvider = ({ children }) => {
     userData,
     setUserData,
     getUserData,
+    authLoading,
   }
 
   return (

@@ -116,14 +116,13 @@ const orderSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Захиалгын дугаар автоматаар үүсгэх
-orderSchema.pre('save', async function (next) {
+orderSchema.pre('save', async function () {
   if (!this.orderNumber) {
     const date = new Date();
     const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
     const random = Math.floor(10000 + Math.random() * 90000);
     this.orderNumber = `APO-${dateStr}-${random}`;
   }
-  next();
 });
 
 const orderModel = mongoose.models.order || mongoose.model('order', orderSchema);
