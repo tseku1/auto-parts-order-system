@@ -6,6 +6,7 @@ import 'dotenv/config';
 import connectDB from './config/mongodb.js';
 import authRouter from './routes/authRoutes.js';
 import userRouter from './routes/userRouter.js';
+import orderRouter from './routes/orderRoutes.js';
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get('/', (req, res) => {
 });
 app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
+app.use('/api/orders', orderRouter);
 
 app.listen(port, () => {
     console.log(`Server is running on: ${port}`);

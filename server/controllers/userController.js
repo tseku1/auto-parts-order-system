@@ -10,11 +10,13 @@ export const getUserData = async (req, res) => {
       return res.json({ success: false, message: 'User not found' });
     }
 
-    res.json({ 
+    res.json({
       success: true,
       userData: {
         name: user.name,
-        isAccountVerified: user.isAccountVerified
+        email: user.email,
+        isAccountVerified: user.isAccountVerified,
+        role: user.role,
       }
     });
   } catch (error) {
