@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
@@ -205,7 +205,7 @@ const AdminDashboard = ({ userData, orders }) => {
       <div className="bg-white rounded-2xl shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-800">Бүх захиалгууд</h2>
-          <button onClick={() => navigate('/orders')} className="text-sm text-blue-600 hover:underline">
+          <button onClick={() => navigate('/admin/orders')} className="text-sm text-blue-600 hover:underline">
             Бүгдийг харах
           </button>
         </div>
@@ -235,7 +235,7 @@ const AdminDashboard = ({ userData, orders }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate('/admin/orders')}
           className="bg-white rounded-2xl shadow p-6 cursor-pointer hover:shadow-md transition-all flex items-center gap-4"
         >
           <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl">📋</div>

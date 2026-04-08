@@ -97,6 +97,34 @@ export const addStaff = async (req, res) => {
   }
 }
 
+// PATCH /api/user/staff/:id  →  ажилтан мэдээлэл засах (admin only)
+export const updateStaff = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    if (req.params.id === req.userId) {
+      return res.json({ success: false, message: 'Өөрийгөө засах боломжгүй' });
+    }
+
+    const user = await userModel.findById(req.params.id);
+    if (!user) return res.json({ success: false, message: 'Хэрэглэгч олдсонгүй' });
+
+    if (email && email !== user.email) {
+      const existing = await userModel.findOne({ email });
+      if (existing) return res.json({ success: false, message: 'Энэ имэйл аль хэдийн бүртгэлтэй байна' });
+    }
+
+    const updated = await userModel.findByIdAndUpdate(
+      req.params.id,
+      { ...(name && { name }), ...(email && { email }) },
+      { new: true }
+    ).select('-password -verifyOtp -resetOtp -verifyOtpExpireAt -resetOtpExpireAt');
+
+    res.json({ success: true, message: 'Мэдээлэл шинэчлэгдлээ', user: updated });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+}
+
 // DELETE /api/user/staff/:id  →  ажилтан устгах (admin only)
 export const removeStaff = async (req, res) => {
   try {

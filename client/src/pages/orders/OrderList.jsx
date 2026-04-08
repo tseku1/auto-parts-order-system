@@ -27,6 +27,36 @@ const OrderList = () => {
   const { backendUrl, userData } = useContext(AppContext)
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
+
+  const handleDelete = async (e, orderId) => {
+    e.stopPropagation()
+    try {
+      const { data } = await axios.delete(backendUrl + `/api/orders/${orderId}`)
+      if (data.success) {
+        toast.success(data.message)
+        setOrders(prev => prev.filter(o => o._id !== orderId))
+      } else {
+        toast.error(data.message)
+      }
+    } catch {
+      toast.error('Устгахад алдаа гарлаа')
+    } finally {
+      setDeleteConfirm(null)
+    }
+  }
+
+  const canEdit = (order) => {
+    if (userData?.role === 'admin') return true
+    if (userData?.role === 'customer') return order.status === 'submitted'
+    return false
+  }
+
+  const canDelete = (order) => {
+    if (userData?.role === 'admin') return true
+    if (userData?.role === 'customer') return order.status === 'submitted'
+    return false
+  }
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -98,6 +128,31 @@ const OrderList = () => {
                     )}
                     {order.assignedTo && userData?.role !== 'customer' && (
                       <p className="text-xs text-gray-400">Хариуцаж байна: {order.assignedTo.name}</p>
+                    )}
+                    {(canEdit(order) || canDelete(order)) && (
+                      <div className="flex items-center gap-3 mt-1" onClick={e => e.stopPropagation()}>
+                        {canEdit(order) && (
+                          <button
+                            onClick={() => navigate(`/orders/${order._id}/edit`)}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            Засах
+                          </button>
+                        )}
+                        {canDelete(order) && (
+                          deleteConfirm === order._id ? (
+                            <span className="flex items-center gap-1">
+                              <button onClick={e => handleDelete(e, order._id)} className="text-xs text-red-600 font-medium hover:underline">Тийм</button>
+                              <span className="text-gray-300">|</span>
+                              <button onClick={e => { e.stopPropagation(); setDeleteConfirm(null) }} className="text-xs text-gray-400 hover:underline">Үгүй</button>
+                            </span>
+                          ) : (
+                            <button onClick={e => { e.stopPropagation(); setDeleteConfirm(order._id) }} className="text-xs text-red-400 hover:text-red-600 hover:underline">
+                              Устгах
+                            </button>
+                          )
+                        )}
+                      </div>
                     )}
                   </div>
                   <div className="text-right shrink-0">

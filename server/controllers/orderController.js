@@ -366,6 +366,58 @@ export const verifyFinalPayment = async (req, res) => {
   }
 };
 
+// PATCH /api/orders/:id  →  Захиалга засах (customer: submitted үед, admin: always)
+export const updateOrder = async (req, res) => {
+  try {
+    const { parts, vehicle, notes } = req.body;
+    const order = await orderModel.findById(req.params.id);
+    if (!order) return res.json({ success: false, message: 'Захиалга олдсонгүй' });
+
+    const user = await userModel.findById(req.userId);
+    if (user.role === 'customer') {
+      if (order.customer.toString() !== req.userId) {
+        return res.status(403).json({ success: false, message: 'Хандах эрхгүй' });
+      }
+      if (order.status !== 'submitted') {
+        return res.json({ success: false, message: 'Зөвхөн "Илгээсэн" статустай захиалгыг засаж болно' });
+      }
+    }
+
+    if (parts && parts.length > 0) order.parts = parts;
+    if (vehicle) order.vehicle = vehicle;
+    if (notes !== undefined) order.notes = notes;
+
+    addStatusHistory(order, order.status, req.userId, 'Захиалга засагдлаа');
+    await order.save();
+    res.json({ success: true, message: 'Захиалга шинэчлэгдлээ', order });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// DELETE /api/orders/:id  →  Захиалга устгах (customer: submitted үед, admin: always)
+export const deleteOrder = async (req, res) => {
+  try {
+    const order = await orderModel.findById(req.params.id);
+    if (!order) return res.json({ success: false, message: 'Захиалга олдсонгүй' });
+
+    const user = await userModel.findById(req.userId);
+    if (user.role === 'customer') {
+      if (order.customer.toString() !== req.userId) {
+        return res.status(403).json({ success: false, message: 'Хандах эрхгүй' });
+      }
+      if (order.status !== 'submitted') {
+        return res.json({ success: false, message: 'Зөвхөн "Илгээсэн" статустай захиалгыг устгаж болно' });
+      }
+    }
+
+    await orderModel.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Захиалга устгагдлаа' });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
 // POST /api/orders/:id/cancel  →  Захиалга цуцлах
 export const cancelOrder = async (req, res) => {
   try {

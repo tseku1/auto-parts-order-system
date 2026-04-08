@@ -30,6 +30,14 @@ const UserManagement = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'us_staff' })
   const [submitting, setSubmitting] = useState(false)
 
+  // Edit
+  const [editUser, setEditUser] = useState(null) // { _id, name, email }
+  const [editForm, setEditForm] = useState({ name: '', email: '' })
+  const [editSaving, setEditSaving] = useState(false)
+
+  // Delete confirm
+  const [deleteId, setDeleteId] = useState(null)
+
   const fetchUsers = () => {
     setLoading(true)
     axios.get(backendUrl + '/api/user/all')
@@ -61,6 +69,46 @@ const UserManagement = () => {
       toast.error('Хадгалахад алдаа гарлаа')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const openEdit = (u) => {
+    setEditUser(u)
+    setEditForm({ name: u.name, email: u.email })
+  }
+
+  const handleEditSave = async (e) => {
+    e.preventDefault()
+    setEditSaving(true)
+    try {
+      const { data } = await axios.patch(backendUrl + `/api/user/staff/${editUser._id}`, editForm)
+      if (data.success) {
+        toast.success(data.message)
+        setUsers(prev => prev.map(u => u._id === editUser._id ? { ...u, ...editForm } : u))
+        setEditUser(null)
+      } else {
+        toast.error(data.message)
+      }
+    } catch {
+      toast.error('Алдаа гарлаа')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    try {
+      const { data } = await axios.delete(backendUrl + `/api/user/staff/${id}`)
+      if (data.success) {
+        toast.success(data.message)
+        setUsers(prev => prev.filter(u => u._id !== id))
+      } else {
+        toast.error(data.message)
+      }
+    } catch {
+      toast.error('Устгахад алдаа гарлаа')
+    } finally {
+      setDeleteId(null)
     }
   }
 
@@ -187,6 +235,7 @@ const UserManagement = () => {
                   <th className="text-left text-xs font-semibold text-gray-500 px-6 py-3">Хэрэглэгч</th>
                   <th className="text-left text-xs font-semibold text-gray-500 px-6 py-3">Одоогийн Role</th>
                   <th className="text-left text-xs font-semibold text-gray-500 px-6 py-3">Role өөрчлөх</th>
+                  <th className="text-left text-xs font-semibold text-gray-500 px-6 py-3">Үйлдэл</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -233,6 +282,32 @@ const UserManagement = () => {
                           </select>
                         )}
                       </td>
+
+                      <td className="px-6 py-4">
+                        {isMe ? (
+                          <span className="text-xs text-gray-300">—</span>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEdit(u)}
+                              className="text-xs text-blue-600 hover:underline"
+                            >
+                              Засах
+                            </button>
+                            {deleteId === u._id ? (
+                              <span className="flex items-center gap-1">
+                                <button onClick={() => handleDelete(u._id)} className="text-xs text-red-600 font-medium hover:underline">Тийм</button>
+                                <span className="text-gray-300">|</span>
+                                <button onClick={() => setDeleteId(null)} className="text-xs text-gray-400 hover:underline">Үгүй</button>
+                              </span>
+                            ) : (
+                              <button onClick={() => setDeleteId(u._id)} className="text-xs text-red-400 hover:text-red-600 hover:underline">
+                                Устгах
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   )
                 })}
@@ -242,6 +317,50 @@ const UserManagement = () => {
         </div>
 
       </div>
+
+      {/* Edit Modal */}
+      {editUser && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <form onSubmit={handleEditSave} className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm flex flex-col gap-4">
+            <h2 className="text-base font-semibold text-gray-800">Ажилтан засах</h2>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-gray-500">Нэр</label>
+              <input
+                required
+                value={editForm.name}
+                onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-gray-500">Имэйл</label>
+              <input
+                required
+                type="email"
+                value={editForm.email}
+                onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
+                className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setEditUser(null)}
+                className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2"
+              >
+                Цуцлах
+              </button>
+              <button
+                type="submit"
+                disabled={editSaving}
+                className="bg-black text-white px-6 py-2 rounded-full text-sm hover:bg-gray-800 disabled:opacity-50"
+              >
+                {editSaving ? 'Хадгалж байна...' : 'Хадгалах'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

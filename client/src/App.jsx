@@ -6,9 +6,11 @@ import EmailVerify from './pages/auth/EmailVerify'
 import ResetPassword from './pages/auth/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import NewOrder from './pages/orders/NewOrder'
+import EditOrder from './pages/orders/EditOrder'
 import OrderList from './pages/orders/OrderList'
 import OrderDetail from './pages/orders/OrderDetail'
 import UserManagement from './pages/admin/UserManagement'
+import AdminOrders from './pages/admin/AdminOrders'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { AppContext } from './context/AppContext'
@@ -36,8 +38,10 @@ const App = () => {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/orders" element={<ProtectedRoute><OrderList /></ProtectedRoute>} />
         <Route path="/orders/new" element={<ProtectedRoute allowedRoles={['customer']}><NewOrder /></ProtectedRoute>} />
+        <Route path="/orders/:id/edit" element={<ProtectedRoute allowedRoles={['customer', 'admin']}><EditOrder /></ProtectedRoute>} />
         <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagement /></ProtectedRoute>} />
+        <Route path="/admin/orders" element={<ProtectedRoute allowedRoles={['admin']}><AdminOrders /></ProtectedRoute>} />
       </Routes>
     </div>
   )

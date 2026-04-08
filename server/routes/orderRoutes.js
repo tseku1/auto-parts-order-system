@@ -5,6 +5,8 @@ import {
   createOrder,
   getOrders,
   getOrderById,
+  updateOrder,
+  deleteOrder,
   assignOrder,
   submitQuote,
   respondToQuote,
@@ -24,10 +26,12 @@ const orderRouter = express.Router();
 // Бүгд нэвтэрсэн байх шаардлагатай
 orderRouter.use(userAuth);
 
-// Захиалга үүсгэх / харах
+// Захиалга үүсгэх / харах / засах / устгах
 orderRouter.post('/', roleAuth('customer'), createOrder);
 orderRouter.get('/', getOrders);
 orderRouter.get('/:id', getOrderById);
+orderRouter.patch('/:id', roleAuth('customer', 'admin'), updateOrder);
+orderRouter.delete('/:id', roleAuth('customer', 'admin'), deleteOrder);
 
 // АНУ ажилтны үйлдлүүд
 orderRouter.post('/:id/assign', roleAuth('us_staff'), assignOrder);
