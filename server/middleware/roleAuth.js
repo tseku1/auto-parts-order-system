@@ -12,7 +12,6 @@ const roleAuth = (...allowedRoles) => {
       if (!allowedRoles.includes(user.role)) {
         return res.status(403).json({ success: false, message: "Access denied" });
       }
-      console.log('next function ajilna');
       next();
     } catch (error) {
       return res.json({ success: false, message: error.message });

@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import Navbar from '../../components/Navbar'
 import { AppContext } from '../../context/AppContext'
 
-const emptyPart = () => ({ partNumber: '', description: '', quantity: 1, imageUrl: '', notes: '' })
+const emptyPart = () => ({ partNumber: '', description: '', quantity: 1, imageUrl: '', imageMode: 'url', notes: '' })
 
 const NewOrder = () => {
   const navigate = useNavigate()
@@ -15,9 +15,32 @@ const NewOrder = () => {
   const [parts, setParts] = useState([emptyPart()])
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [uploadingIndex, setUploadingIndex] = useState(null)
 
   const updatePart = (index, field, value) => {
     setParts(prev => prev.map((p, i) => i === index ? { ...p, [field]: value } : p))
+  }
+
+  const handleImageFile = async (index, file) => {
+    if (!file) return
+    const formData = new FormData()
+    formData.append('image', file)
+    setUploadingIndex(index)
+    try {
+      const { data } = await axios.post(backendUrl + '/api/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
+      })
+      if (data.success) {
+        updatePart(index, 'imageUrl', data.url)
+      } else {
+        toast.error(data.message)
+      }
+    } catch {
+      toast.error('Зураг upload хийхэд алдаа гарлаа')
+    } finally {
+      setUploadingIndex(null)
+    }
   }
 
   const addPart = () => setParts(prev => [...prev, emptyPart()])
@@ -179,14 +202,48 @@ const NewOrder = () => {
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="text-xs text-gray-500 mb-1 block">Зураг / URL</label>
-                      <input
-                        type="url"
-                        placeholder="https://..."
-                        value={part.imageUrl}
-                        onChange={e => updatePart(index, 'imageUrl', e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-400 bg-white"
-                      />
+                      <label className="text-xs text-gray-500 mb-1 block">Зураг</label>
+                      <div className="flex gap-2 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => updatePart(index, 'imageMode', 'url')}
+                          className={`text-xs px-3 py-1 rounded-full border transition-all ${part.imageMode !== 'file' ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200'}`}
+                        >
+                          URL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updatePart(index, 'imageMode', 'file')}
+                          className={`text-xs px-3 py-1 rounded-full border transition-all ${part.imageMode === 'file' ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200'}`}
+                        >
+                          Файл / Галерей
+                        </button>
+                      </div>
+                      {part.imageMode !== 'file' ? (
+                        <input
+                          type="url"
+                          placeholder="https://..."
+                          value={part.imageUrl}
+                          onChange={e => updatePart(index, 'imageUrl', e.target.value)}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gray-400 bg-white"
+                        />
+                      ) : (
+                        <label className="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-lg py-4 cursor-pointer bg-white hover:border-gray-400 transition-all">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={e => handleImageFile(index, e.target.files[0])}
+                          />
+                          {uploadingIndex === index ? (
+                            <span className="text-xs text-gray-400">Upload хийж байна...</span>
+                          ) : part.imageUrl ? (
+                            <img src={part.imageUrl} alt="preview" className="max-h-32 rounded-lg object-contain" />
+                          ) : (
+                            <span className="text-xs text-gray-400">Зургаа сонгоно уу</span>
+                          )}
+                        </label>
+                      )}
                     </div>
                     <div className="col-span-2">
                       <label className="text-xs text-gray-500 mb-1 block">Нэмэлт тэмдэглэл</label>
